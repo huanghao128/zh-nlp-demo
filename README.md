@@ -1,5 +1,4 @@
-
-自然语言处理NLP在中文文本上的一些应用，如文本分类、情感分析、命名实体识别等
+本项目是自然语言处理NLP在中文文本上的一些简单应用，如文本分类、情感分析、命名实体识别等。
 
 ### 文本分类
 文本分类的例子对应zh_article_classify_bilstm_attention.ipynb，这里构建的是BiLSTM+Attention的模型结构。
