@@ -2,6 +2,7 @@
 
 ### 文本分类
 文本分类的例子对应zh_article_classify_bilstm_attention.ipynb，这里构建的是BiLSTM+Attention的模型结构。
+
 数据集用的是头条的标题和对应文章分类数据。
 
 ### 命名实体识别
