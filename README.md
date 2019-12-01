@@ -49,4 +49,50 @@ model.summary()
 ```
 
 ### 文本情感分析
-见另一个项目：https://github.com/huanghao128/tf-sentiment-analysis
+情感分析例子对应在zh_sentiment_analysis目录下，包含用tensorflow训练模型，python和Java语言分别预测的方法。
+
+java加载模型的两种方法：
+```java
+// 读取tensorflow二进制的模型文件 方法1
+private static Session loadTFModel(String pathname) throws IOException{
+    File filename = new File(pathname);
+    BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
+    ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
+    byte[] temp = new byte[1024];
+    int size = 0;
+    while((size = in.read(temp)) != -1){
+        out.write(temp, 0, size);
+    }
+    in.close();
+
+    byte[] graphDef = out.toByteArray();
+    Graph graph = new Graph();
+    graph.importGraphDef(graphDef);
+    Session session = new Session(graph);
+    return session;
+}
+
+// 读取tensorflow二进制的模型文件 方法2
+private static Session loadTFModel2(String pathname, String tag) throws IOException{
+    SavedModelBundle modelBundle = SavedModelBundle.load(pathname, tag);
+    Session session = modelBundle.session();
+    return session;
+}
+```
+输入句子预测结果：
+```java
+// 输入模型的测试语句
+int[][] sentenceBuf = getInputFromSentence(sentence, wordsMap);
+Tensor inputTensor = Tensor.create(sentenceBuf);
+Tensor dropProbTensor = Tensor.create(1.0f); // 预测时drop_prob = 1.0
+// 输入数据，得到预测结果
+Tensor result = session.runner()
+        .feed("Input_Layer/input_x:0", inputTensor)
+        .feed("Input_Layer/keep_prob:0", dropProbTensor)
+        .fetch("Accuracy/score:0")
+        .run().get(0);
+```
+
+
+
+
