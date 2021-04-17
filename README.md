@@ -29,6 +29,7 @@ def create_classify_model(max_len, vocab_size, embedding_size, hidden_size, atte
 ### 命名实体识别
 命名实体识别的例子对应zh_ner_bilstm_crf_keras.ipynb，构建的模型是BiLSTM+CRF结构。
 
+#### keras版
 具体模型搭建如下：
 ```python
 # Input输入层
@@ -46,6 +47,40 @@ outputs = CRF(CLASS_NUMS)(x)
 
 model = Model(inputs=inputs, outputs=outputs)
 model.summary()
+```
+
+#### tf2.0+keras版
+```python
+import tensorflow as tf
+import tensorflow_addons as tfa
+from tensorflow import keras
+from tensorflow.keras import layers, models
+from tensorflow.keras import backend as K
+
+class CRF(layers.Layer):
+    def __init__(self, label_size):
+        super(CRF, self).__init__()
+        self.trans_params = tf.Variable(
+            tf.random.uniform(shape=(label_size, label_size)), name="transition")
+    
+    @tf.function
+    def call(self, inputs, labels, seq_lens):
+        log_likelihood, self.trans_params = tfa.text.crf_log_likelihood(
+                                                inputs, labels, seq_lens,
+                                                transition_params=self.trans_params)
+        loss = tf.reduce_sum(-log_likelihood)
+        return loss
+
+inputs = layers.Input(shape=(MAX_LEN,), name='input_ids', dtype='int32')
+targets = layers.Input(shape=(MAX_LEN,), name='target_ids', dtype='int32')
+seq_lens = layers.Input(shape=(), name='input_lens', dtype='int32')
+
+x = layers.Embedding(input_dim=VOCAB_SIZE, output_dim=EMBED_DIM, mask_zero=True)(inputs)
+x = layers.Bidirectional(layers.LSTM(HIDDEN_SIZE, return_sequences=True))(x)
+logits = layers.Dense(CLASS_NUMS)(x)
+loss = CRF(label_size=CLASS_NUMS)(logits, targets, seq_lens)
+
+model = models.Model(inputs=[inputs, targets, seq_lens], outputs=loss)
 ```
 
 ### 文本情感分析
